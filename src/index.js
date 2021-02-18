@@ -40,7 +40,7 @@ class List {
     // fromLocStorage(key) {
     //     const retObj = JSON.parse(localStorage.getItem(key));
     //     return retObj;
-    // }
+    // } почему линтер, если раскоментить, жалуеться на то, что нужен this? а если нужен то где и как..
 }
 
 
