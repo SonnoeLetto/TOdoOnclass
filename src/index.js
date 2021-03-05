@@ -1,70 +1,76 @@
 class List {
-    notes = [];
-    addNote(text) {
-        const note = {
-            text,
+    constructor(name) {
+        this.name = name;
+        this.iniData();
+    }
+
+    add(payload) {
+        const object = {
             id: Date.now(),
-            isComplete: false,
+            ...payload
         };
-        const find = this.notes.find((el) => el.text === text);
-        if (!find) {
-
-            this.notes.push(note);
-        } else {
-            return 'Уже есть';
-        }
+        this.data.push(object);
+        this.save();
     }
-    getNoteIndexById(id) {
-        return this.notes.findIndex((el) => el.id === id);
+    remove(id) {
+        this.data = this.data.filter(x => x.id !== id);
+        this.save();
     }
-    removeNote(id, asker = confirm('Вы уверены?')) {
-        const VALUE_SPLICE = 1;
-        if (asker) {
-            const index = this.getNoteIndexById(id);
-            this.notes.splice(index, VALUE_SPLICE);
-        }
-    }
-    updateNoteText(id, text, asker = confirm('Вы уверены?')) {
-        const find = this.notes.find((el) => el.text === text);
-        if ((asker) && (!find)) {
-            const index = this.getNoteIndexById(id);
-            this.notes[index].text = text;
-        } else {
-            return 'error';
-        }
-    }
-    toLocStorage(key) {
-        const object = JSON.stringify(this.notes);
-        localStorage.setItem( key, object);
-    }
-    // fromLocStorage(key) {
-    //     const retObj = JSON.parse(localStorage.getItem(key));
-    //     return retObj;
-    // } почему линтер, если раскоментить, жалуеться на то, что нужен this? а если нужен то где и как..
-}
-
-
-
-class ToDo extends List {
-    setNoteAsComplete(id) {
-        const index = this.getNoteIndexById(id);
-        this.notes[index].isComplete = true;
-    }
-    statistic() {
-        return this.notes.reduce((acc, x) => {
-            if (x.completed) {
-                acc.completed++;
-            } else {
-                acc.incomplete++;
+    update(id, payload) {
+        this.data = this.data.map(x => {
+            if (x.id !== id) {
+                return x;
             }
-            return acc;
-        },
-        {
-            total: this.notes.length,
-            completed: 0,
-            incomplete: 0,
+
+            return {
+                ...x,
+                ...payload
+            };
         });
+        this.save();
+    }
+    save() {
+        const jsonData = JSON.stringify(this.data);
+        localStorage.setItem(this.name, jsonData);
+    }
+    iniData() {
+        const jsonData = localStorage.getItem(this.name);
+        this.data = JSON.parse(jsonData) || [];
     }
 }
 
-ToDo();
+
+class TodoList extends List {
+    add(text) {
+        const note = {
+            isComplete: false,
+            value: text
+        };
+        super.add(note);
+    }
+    update(id, text) {
+        super.update(id, { value: text});
+    }
+    setComplete(id) {
+        this.data = this.data.map(x => {
+            if (x.id ===id) {
+                x.isComplete = true;
+            }
+
+            return x;
+        });
+        this.save();
+    }
+    get statistic() {
+        const complete = this.data.filter(x => Boolean(x.isComplete)).length;
+
+        return {
+            complete,
+            total: this.data.length
+        };
+    }
+}
+TodoList();
+
+
+
